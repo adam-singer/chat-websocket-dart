@@ -1,5 +1,7 @@
 #import('dart:html');
 #import('dart:json');
+var IP='127.0.0.1';
+var PORT=8080;
 
 class ChatClient {
   WebSocket ws;
@@ -44,7 +46,7 @@ class ChatClient {
       }  
     });
   
-    ws = new WebSocket("ws://127.0.0.1:8000/ws");
+    ws = new WebSocket("ws://$IP:$PORT/ws");
     ws.on.open.add((a) {
       print("open $a");
       isConnected = true;

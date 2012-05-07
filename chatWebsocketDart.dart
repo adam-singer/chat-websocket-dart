@@ -1,5 +1,7 @@
 #import('dart:io');
 #import('dart:json');
+var IP='127.0.0.1';
+var PORT=8080;
 
 Map<String, ClientNick> connections;
 List chatText;
@@ -59,6 +61,24 @@ void main() {
   WebSocketHandler wsHandler = new WebSocketHandler();
   server.addRequestHandler((req) => req.path == "/ws", wsHandler.onRequest);
   
+  server.addRequestHandler((req) => req.path == "/", (HttpRequest req, HttpResponse res) {
+    File file = new File("./ChatClient/ChatClient.html"); 
+    file.openInputStream().pipe(res.outputStream); 
+  });
+  server.addRequestHandler((req) => req.path == "/ChatClient.html", (HttpRequest req, HttpResponse res) {
+    File file = new File("./ChatClient/ChatClient.html"); 
+    file.openInputStream().pipe(res.outputStream); 
+  });
+  server.addRequestHandler((req) => req.path == "/ChatClient.dart", (HttpRequest req, HttpResponse res) {
+    File file = new File("./ChatClient/ChatClient.dart"); 
+    file.openInputStream().pipe(res.outputStream); 
+  });
+  server.addRequestHandler((req) => req.path == "/ChatClient.dart.js", (HttpRequest req, HttpResponse res) {
+    File file = new File("./ChatClient/ChatClient.dart.js"); 
+    file.openInputStream().pipe(res.outputStream); 
+  });
+  
+  
   wsHandler.onOpen = (WebSocketConnection conn) {
     token+=1;
     var c = new ClientNick("new_nick_${token}", token, conn);
@@ -66,6 +86,6 @@ void main() {
     connections[token.toString()] = c;
   };
   
-  print('listing on localhost');
-  server.listen('127.0.0.1', 8000);
+  print('listing on http://$IP:$PORT');
+  server.listen(IP, PORT);
 }
