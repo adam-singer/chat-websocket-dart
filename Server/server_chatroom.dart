@@ -1,7 +1,8 @@
 #import('dart:io');
 #import('dart:json');
-var IP='127.0.0.1';
-var PORT=8080;
+
+final IP = '127.0.0.1';
+final PORT = 8080;
 
 Map<String, ClientNick> connections;
 List chatText;
@@ -62,19 +63,19 @@ void main() {
   server.addRequestHandler((req) => req.path == "/ws", wsHandler.onRequest);
   
   server.addRequestHandler((req) => req.path == "/", (HttpRequest req, HttpResponse res) {
-    File file = new File("./ChatClient/ChatClient.html"); 
+    File file = new File("../Client/client_chatroom.html"); 
     file.openInputStream().pipe(res.outputStream); 
   });
-  server.addRequestHandler((req) => req.path == "/ChatClient.html", (HttpRequest req, HttpResponse res) {
-    File file = new File("./ChatClient/ChatClient.html"); 
+  server.addRequestHandler((req) => req.path == "/client_chatroom.html", (HttpRequest req, HttpResponse res) {
+    File file = new File("../Client/client_chatroom.html"); 
     file.openInputStream().pipe(res.outputStream); 
   });
-  server.addRequestHandler((req) => req.path == "/ChatClient.dart", (HttpRequest req, HttpResponse res) {
-    File file = new File("./ChatClient/ChatClient.dart"); 
+  server.addRequestHandler((req) => req.path == "/client_chatroom.dart", (HttpRequest req, HttpResponse res) {
+    File file = new File("../Client/client_chatroom.dart"); 
     file.openInputStream().pipe(res.outputStream); 
   });
-  server.addRequestHandler((req) => req.path == "/ChatClient.dart.js", (HttpRequest req, HttpResponse res) {
-    File file = new File("./ChatClient/ChatClient.dart.js"); 
+  server.addRequestHandler((req) => req.path == "/client_chatroom.dart.js", (HttpRequest req, HttpResponse res) {
+    File file = new File("../Client/client_chatroom.dart.js"); 
     file.openInputStream().pipe(res.outputStream); 
   });
   

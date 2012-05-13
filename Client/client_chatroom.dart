@@ -1,74 +1,102 @@
 #import('dart:html');
 #import('dart:json');
-var IP='127.0.0.1';
-var PORT=8080;
 
-class ChatClient {
-  WebSocket ws;
-  bool isConnected = false;
-  InputElement _messageInput;
-  InputElement _nicknameInput;
-  
-  ChatClient() {
+final IP = '127.0.0.1';
+final PORT = 8080;
+
+
+class ChatClientController {
+  ChatClientController() {
   }
-  
   // Send nickname to server
-  sendNick() {
-    var name = _nicknameInput.value;
-    ws.send(JSON.stringify({"cmd": "setnick", "args": name}));
-  }
-  
-  // Server sets nickname
-  setNick(nick) {
-    _nicknameInput.value = nick;
+  void sendNick(WebSocket ws, String nickname) {
+    ws.send(JSON.stringify({"cmd": "setnick", "args": nickname}));
   }
   
   // Send the server a message
-  sendMessage() {
-    String message = _messageInput.value;
+  void sendMessage(WebSocket ws, String message) {
     if (!message.isEmpty()) {
       ws.send(JSON.stringify({"cmd": "sendmessage", "args": message}));
-      _messageInput.value = "";
     }
   }
+}
 
-  void run() {
+class ChatClientView {
+  DivElement _chatWindow; 
+  
+  ChatClientView() {
+    _chatWindow = document.query('#status');
+  }
+  
+  void displayMessage(String message) {
+    _chatWindow.innerHTML = "${_chatWindow.innerHTML} <br/> $message";
+  }
+  
+  void clearMessageBox(InputElement messageInput) {
+    messageInput.value = "";
+  }
+  
+  void updateNicknameBox(InputElement _nicknameInput, nickname) {
+    _nicknameInput.value = nickname;
+  }
+}
+
+
+class ChatClient {
+  WebSocket _ws;
+  bool _isConnected = false;
+  InputElement _messageInput;
+  InputElement _nicknameInput;
+  ChatClientView _view;
+  ChatClientController _controller;
+  
+  
+  ChatClient() {
+    _view = new ChatClientView();
+    _controller = new ChatClientController();
+  }
+  
+  void setupWebsocket() {
+    _ws = new WebSocket("ws://$IP:$PORT/ws");
+    _ws.on.open.add((a) {
+      print("open $a");
+      _isConnected = true;
+    });
+    
+    _ws.on.close.add((c) {
+      print("close $c");
+      _isConnected = false;
+    });
+    
+    _ws.on.message.add((m) {
+      var jdata = JSON.parse(m.data);
+      if (jdata["cmd"] == "serversetnick") {
+        _view.updateNicknameBox(_nicknameInput, jdata["args"]);
+      } else if (jdata["cmd"] == "newmessage") {
+        _view.displayMessage(jdata["args"]);
+      }
+    });
+  }
+  
+  void setupUserInputEvents() {
     _messageInput = document.query("#message");
     _messageInput.on.keyPress.add((key) {
       if (key.charCode == 13) { // Enter
-        sendMessage();
+        _controller.sendMessage(_ws, _messageInput.value);
+        _view.clearMessageBox(_messageInput);
       }      
     });
     _nicknameInput = document.query("#nickname");
     _nicknameInput.on.keyPress.add((key) {
       if (key.charCode == 13) { // Enter
-        sendNick();
+        _controller.sendNick(_ws, _nicknameInput.value);
       }  
-    });
-  
-    ws = new WebSocket("ws://$IP:$PORT/ws");
-    ws.on.open.add((a) {
-      print("open $a");
-      isConnected = true;
-    });
-    
-    ws.on.close.add((c) {
-      print("close $c");
-      isConnected = false;
-    });
-    
-    ws.on.message.add((m) {
-      var jdata = JSON.parse(m.data);
-      if (jdata["cmd"] == "serversetnick") {
-        setNick(jdata["args"]);
-      } else if (jdata["cmd"] == "newmessage") {
-        displayMessage(jdata["args"]);
-      }
     });
   }
 
-  void displayMessage(String message) {
-    document.query('#status').innerHTML = "${document.query('#status').innerHTML} <br/> $message";
+  void run() {
+    setupUserInputEvents();    
+    setupWebsocket();
   }
 }
 
